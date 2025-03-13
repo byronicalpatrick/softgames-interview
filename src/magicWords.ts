@@ -2,25 +2,9 @@ import * as PIXI from "pixi.js";
 
 import magicWordsAPI from "./magicWordsAPI.json";
 
-async function getData(): Promise<any> {
-  const response = await fetch(
-    "https://private-624120-softgamesassignment.apiary-mock.com/v2/magicwords"
-  );
-  const data = await response.json();
-  // Fix emoji "sad" link by removing port number
-  // TODO: use actual URL parsing
-  for (const emoji of data["emojies"]) {
-    emoji["url"] = emoji["url"].replace(":81", "");
-  }
-  return data;
-}
-
 export default async function magicWords(
   app: PIXI.Application
 ): Promise<PIXI.Container> {
-  // const data = await getData();
-  // console.log(data);
-  // Load the assets
   // TODO: fix URL fetch issue
   await PIXI.Assets.load([
     ...magicWordsAPI["emojies"].map((entry: { name: string; url: string }) => ({
@@ -75,7 +59,6 @@ export default async function magicWords(
     const parts = entry.text.split(/\{.*?\}/);
 
     parts.forEach((part, index) => {
-      // TODO: strip white space
       const text = new PIXI.Text(part);
       text.x = offset;
       text.style.fontSize = 20;

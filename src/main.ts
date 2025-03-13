@@ -133,7 +133,7 @@ let fullScreen = false;
   app.stage.addChild(smallScreenButton);
   app.stage.addChild(menuButton);
 
-  app.ticker.add((delta) => {
+  app.ticker.add((_) => {
     app.stage.sortChildren();
 
     fullScreenButton.visible = !fullScreen;
@@ -156,7 +156,7 @@ let fullScreen = false;
     menuButton.anchor.x = 1;
 
     if (phoenixFlameCallback) {
-      phoenixFlameCallback(delta);
+      phoenixFlameCallback();
     }
 
     aceOfShadowsButton.x = app.screen.width / 2;

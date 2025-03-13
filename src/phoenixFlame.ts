@@ -54,7 +54,7 @@ export default async function phoenixFlame(
     sprites.addChild(sprite);
   }
 
-  function updateParticles(delta: number) {
+  function updateParticles() {
     for (let i = particles.length - 1; i >= 0; i--) {
       const sprite = sprites.children[i];
       const p = particles[i];
@@ -73,11 +73,11 @@ export default async function phoenixFlame(
 
   return [
     container,
-    function (delta: number) {
+    function () {
       if (particles.length < maxParticles) {
         createParticle();
       }
-      updateParticles(delta);
+      updateParticles();
     },
   ];
 }
