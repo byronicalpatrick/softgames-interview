@@ -82,6 +82,7 @@ let fullScreen = false;
     );
     phoenixFlameCallback = _phoenixFlameCallback;
     phoenixFlameContainer.visible = true;
+    menu.visible = false;
     app.stage.addChild(phoenixFlameContainer);
     menuButton.on("pointerdown", (_) => {
       phoenixFlameContainer.visible = false;
