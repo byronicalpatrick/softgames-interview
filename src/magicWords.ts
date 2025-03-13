@@ -2,6 +2,8 @@ import * as PIXI from "pixi.js";
 
 import magicWordsAPI from "./magicWordsAPI.json";
 
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 export default async function magicWords(
   app: PIXI.Application
 ): Promise<PIXI.Container> {
@@ -35,9 +37,14 @@ export default async function magicWords(
   container.addChild(background);
   container.visible = false;
 
+  const dialogueContainer = new PIXI.Container();
+  container.eventMode = "static";
+  container.addEventListener("wheel", (event) => {
+    dialogueContainer.y -= event.deltaY;
+  });
+  container.addChild(dialogueContainer);
+
   // TODO: add bubble around text
-  // TODO: mobile screen size render properly
-  // TODO: Add scrolling behaviour
   let yOffset = 50;
   for (const entry of magicWordsAPI.dialogue) {
     const dialogueBox = new PIXI.Container();
@@ -61,7 +68,7 @@ export default async function magicWords(
     parts.forEach((part, index) => {
       const text = new PIXI.Text(part);
       text.x = offset;
-      text.style.fontSize = 20;
+      text.style.fontSize = Math.min(20, app.screen.width / 45);
       dialogueBox.addChild(text);
       offset = text.x + text.width;
 
@@ -69,8 +76,8 @@ export default async function magicWords(
       if (match) {
         // TODO: handle missing assets
         const image = PIXI.Sprite.from(match[1]);
-        image.scale.x = 0.2;
-        image.scale.y = 0.2;
+        image.scale.x = isMobile ? 0.1 : 0.2;
+        image.scale.y = isMobile ? 0.1 : 0.2;
         image.x = offset;
         offset = image.x + image.width;
         dialogueBox.addChild(image);
@@ -79,16 +86,13 @@ export default async function magicWords(
 
     if (avatarMeta.position === "right") {
       avatar.x = offset;
-      dialogueBox.addChild(avatar);
-    }
-
-    if (avatarMeta.position === "right") {
       dialogueBox.x = container.width - (dialogueBox.width + avatar.width);
+      dialogueBox.addChild(avatar);
     }
 
     dialogueBox.y = yOffset;
     yOffset = dialogueBox.y + dialogueBox.height;
-    container.addChild(dialogueBox);
+    dialogueContainer.addChild(dialogueBox);
   }
 
   return container;
