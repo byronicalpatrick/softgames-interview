@@ -1,5 +1,7 @@
 import * as PIXI from "pixi.js";
 
+import magicWords from "./magicWords";
+
 import "./style.css";
 
 // TODO: Set to screen size (maybe: and resize to window automatically?)
@@ -13,6 +15,8 @@ const app = new PIXI.Application<HTMLCanvasElement>({
 
 (async () => {
   document.body.appendChild(app.view);
+  // TODO: add fullscreen icon
+  // document.getElementsByTagName("canvas")[0].requestFullscreen();
 
   // TODO: pick a nicer font (or just switch to `Text`)
   await PIXI.Assets.load("https://pixijs.com/assets/bitmap-font/desyrel.xml");
@@ -45,14 +49,12 @@ const app = new PIXI.Application<HTMLCanvasElement>({
     aceOfShadows.visible = true;
     menu.visible = false;
   });
-  aceOfShadowsButton.x = app.screen.width / 2;
-  aceOfShadowsButton.y = app.screen.height / 2 - 200;
-  const magicWordsButton = createButton(() => {});
-  magicWordsButton.x = app.screen.width / 2;
-  magicWordsButton.y = app.screen.height / 2;
+
+  const magicWordsButton = createButton(() => {
+    magicWordsContainer.visible = true;
+    menu.visible = false;
+  });
   const phoenixFlameButton = createButton(() => {});
-  phoenixFlameButton.x = app.screen.width / 2;
-  phoenixFlameButton.y = app.screen.height / 2 + 200;
 
   menu.addChild(aceOfShadowsButton);
   menu.addChild(magicWordsButton);
@@ -69,6 +71,9 @@ const app = new PIXI.Application<HTMLCanvasElement>({
   aceOfShadows.visible = false;
   app.stage.addChild(aceOfShadows);
 
+  const magicWordsContainer = await magicWords(app);
+  app.stage.addChild(magicWordsContainer);
+
   // Ensure this is rendered on top
   const fpsDisplay = new PIXI.BitmapText("", {
     fontName: "Desyrel",
@@ -79,7 +84,17 @@ const app = new PIXI.Application<HTMLCanvasElement>({
   fpsDisplay.y = 10;
   app.stage.addChild(fpsDisplay);
 
+  // TODO: remove - debug line
+  // aceOfShadows.visible = true;
+  // menu.visible = false;
+
   app.ticker.add((delta) => {
+    aceOfShadowsButton.x = app.screen.width / 2;
+    aceOfShadowsButton.y = app.screen.height / 2 - 200;
+    magicWordsButton.x = app.screen.width / 2;
+    magicWordsButton.y = app.screen.height / 2;
+    phoenixFlameButton.x = app.screen.width / 2;
+    phoenixFlameButton.y = app.screen.height / 2 + 200;
     // TODO: handle screen resize font issue
     // TODO: display is choppy for 1+ decimal places. Either debounce or leave as integer.
     fpsDisplay.text = app.ticker.FPS.toFixed(0);
