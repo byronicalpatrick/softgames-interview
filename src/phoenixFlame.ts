@@ -70,7 +70,7 @@ export default async function phoenixFlame(
   }
 
   const frames = [];
-  for (let i = 0; i <= 75; i++) {
+  for (let i = 0; i <= 74; i++) {
     const index = String(i + 51).padStart(4, "0");
     frames.push(PIXI.Texture.from(`fire/fire1_${index}.png`));
   }
