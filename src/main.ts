@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 
+import aceOfShadows from "./aceOfShadows";
 import magicWords from "./magicWords";
 
 import "./style.css";
@@ -46,7 +47,7 @@ const app = new PIXI.Application<HTMLCanvasElement>({
 
   // TODO: bind escape key to switch for menu
   const aceOfShadowsButton = createButton(() => {
-    aceOfShadows.visible = true;
+    aceOfShadowsContainer.visible = true;
     menu.visible = false;
   });
 
@@ -62,14 +63,9 @@ const app = new PIXI.Application<HTMLCanvasElement>({
   app.stage.addChild(menu);
 
   // TODO: better way of scaling?
-  const aceOfShadows = new PIXI.Container();
-  const aceOfShadowsBackground = new PIXI.Graphics();
-  aceOfShadowsBackground.beginFill(0xffffff);
-  aceOfShadowsBackground.drawRect(0, 0, app.screen.width, app.screen.height);
-  aceOfShadowsBackground.endFill();
-  aceOfShadows.addChild(aceOfShadowsBackground);
-  aceOfShadows.visible = false;
-  app.stage.addChild(aceOfShadows);
+  const aceOfShadowsContainer = await aceOfShadows(app);
+  aceOfShadowsContainer.visible = false;
+  app.stage.addChild(aceOfShadowsContainer);
 
   const magicWordsContainer = await magicWords(app);
   app.stage.addChild(magicWordsContainer);
@@ -85,7 +81,7 @@ const app = new PIXI.Application<HTMLCanvasElement>({
   app.stage.addChild(fpsDisplay);
 
   // TODO: remove - debug line
-  // aceOfShadows.visible = true;
+  // aceOfShadowsContainer.visible = true;
   // menu.visible = false;
 
   app.ticker.add((delta) => {

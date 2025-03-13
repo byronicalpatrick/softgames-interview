@@ -41,7 +41,6 @@ export default async function magicWords(
       ]
     )
   );
-  console.log(avatarsMap);
 
   const container = new PIXI.Container();
 
