@@ -38,7 +38,7 @@ export default async function magicWords(
   // TODO: add bubble around text
   // TODO: mobile screen size render properly
   // TODO: Add scrolling behaviour
-  let yOffset = 0;
+  let yOffset = 50;
   for (const entry of magicWordsAPI.dialogue) {
     const dialogueBox = new PIXI.Container();
     const avatarMeta = avatarsMap[entry.name];
