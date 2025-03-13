@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 
 import aceOfShadows from "./aceOfShadows";
 import magicWords from "./magicWords";
+import phoenixFlame from "./phoenixFlame";
 
 import "./style.css";
 
@@ -11,13 +12,11 @@ const app = new PIXI.Application<HTMLCanvasElement>({
   resizeTo: window,
 });
 
-// TODO: in-game menu
-// TODO: run in full-screen
+// TODO: fix screen scaling issues in full-screen
+let fullScreen = false;
 
 (async () => {
   document.body.appendChild(app.view);
-  // TODO: add fullscreen icon
-  // document.getElementsByTagName("canvas")[0].requestFullscreen();
 
   // TODO: pick a nicer font (or just switch to `Text`)
   await PIXI.Assets.load("https://pixijs.com/assets/bitmap-font/desyrel.xml");
@@ -25,14 +24,18 @@ const app = new PIXI.Application<HTMLCanvasElement>({
   // TODO: in-game menu
   const menu = new PIXI.Container();
 
-  function createButton(onClick: Function): PIXI.Sprite {
+  function createButton(label: string, onClick: Function): PIXI.Sprite {
     const graphic = new PIXI.Graphics();
     graphic.beginFill(0xffffff);
     graphic.drawRect(0, 0, 200, 100);
     graphic.endFill();
 
     const texture = app.renderer.generateTexture(graphic);
+    const buttonText = new PIXI.Text(label);
+    buttonText.anchor.x = 0.5;
+    buttonText.anchor.y = 0.5;
     const button = new PIXI.Sprite(texture);
+    button.addChild(buttonText);
     // TODO: update state to display new page
     button.on("pointerdown", (_) => {
       onClick();
@@ -45,46 +48,117 @@ const app = new PIXI.Application<HTMLCanvasElement>({
     return button;
   }
 
-  // TODO: bind escape key to switch for menu
-  const aceOfShadowsButton = createButton(() => {
+  // TODO: known issue here where we assume the user is already in
+  // full screen when these objects are rendered. Fix here is to have
+  // the render loop set the position of all the objects in question
+  // relative to stage dimensions.
+  const aceOfShadowsButton = createButton("Ace of Shadows", async () => {
+    const aceOfShadowsContainer = await aceOfShadows(app);
     aceOfShadowsContainer.visible = true;
-    menu.visible = false;
+    app.stage.addChild(aceOfShadowsContainer);
+    menuButton.on("pointerdown", (_) => {
+      aceOfShadowsContainer.visible = false;
+      menu.visible = true;
+      aceOfShadowsContainer.removeFromParent();
+      aceOfShadowsContainer.destroy();
+    });
   });
 
-  const magicWordsButton = createButton(() => {
+  const magicWordsButton = createButton("Magic Words", async () => {
+    const magicWordsContainer = await magicWords(app);
     magicWordsContainer.visible = true;
-    menu.visible = false;
+    app.stage.addChild(magicWordsContainer);
+    menuButton.on("pointerdown", (_) => {
+      magicWordsContainer.visible = false;
+      menu.visible = true;
+      magicWordsContainer.removeFromParent();
+      magicWordsContainer.destroy();
+    });
   });
-  const phoenixFlameButton = createButton(() => {});
+  let phoenixFlameCallback: Function;
+  const phoenixFlameButton = createButton("Phoenix Flame", async () => {
+    const [phoenixFlameContainer, _phoenixFlameCallback] = await phoenixFlame(
+      app
+    );
+    phoenixFlameCallback = _phoenixFlameCallback;
+    phoenixFlameContainer.visible = true;
+    app.stage.addChild(phoenixFlameContainer);
+    menuButton.on("pointerdown", (_) => {
+      phoenixFlameContainer.visible = false;
+      menu.visible = true;
+      phoenixFlameContainer.removeFromParent();
+      phoenixFlameContainer.destroy();
+    });
+    app.stage.addChild(phoenixFlameContainer);
+  });
 
   menu.addChild(aceOfShadowsButton);
   menu.addChild(magicWordsButton);
   menu.addChild(phoenixFlameButton);
   app.stage.addChild(menu);
 
-  // TODO: better way of scaling?
-  const aceOfShadowsContainer = await aceOfShadows(app);
-  aceOfShadowsContainer.visible = false;
-  app.stage.addChild(aceOfShadowsContainer);
-
-  const magicWordsContainer = await magicWords(app);
-  app.stage.addChild(magicWordsContainer);
-
   // Ensure this is rendered on top
-  const fpsDisplay = new PIXI.BitmapText("", {
-    fontName: "Desyrel",
+  const fpsDisplay = new PIXI.Text("", {
     fontSize: 20,
     align: "left",
   });
   fpsDisplay.x = 10;
   fpsDisplay.y = 10;
+  fpsDisplay.zIndex = 100;
   app.stage.addChild(fpsDisplay);
-
-  // TODO: remove - debug line
-  // aceOfShadowsContainer.visible = true;
-  // menu.visible = false;
+  app.stage.sortableChildren = true;
+  // TODO: add button on top right for fullscreen (switching to non-full screen)
+  // and to return to the menu
+  const fullScreenButton = PIXI.Sprite.from("expand.png");
+  fullScreenButton.cursor = "pointer";
+  fullScreenButton.eventMode = "static";
+  fullScreenButton.on("pointerdown", (_) => {
+    document.getElementsByTagName("canvas")[0].requestFullscreen();
+    fullScreen = true;
+  });
+  fullScreenButton.zIndex = 100;
+  const smallScreenButton = PIXI.Sprite.from("minimize.png");
+  smallScreenButton.cursor = "pointer";
+  smallScreenButton.eventMode = "static";
+  smallScreenButton.on("pointerdown", (_) => {
+    document.exitFullscreen();
+    fullScreen = false;
+  });
+  smallScreenButton.zIndex = 100;
+  const menuButton = PIXI.Sprite.from("hamburger.png");
+  menuButton.cursor = "pointer";
+  menuButton.eventMode = "static";
+  menuButton.zIndex = 100;
+  app.stage.addChild(fullScreenButton);
+  app.stage.addChild(smallScreenButton);
+  app.stage.addChild(menuButton);
 
   app.ticker.add((delta) => {
+    app.stage.sortChildren();
+
+    fullScreenButton.visible = !fullScreen;
+    smallScreenButton.visible = fullScreen;
+
+    fullScreenButton.width = 20;
+    fullScreenButton.height = 20;
+    fullScreenButton.x = app.screen.width - 10;
+    fullScreenButton.y = 10;
+    fullScreenButton.anchor.x = 1;
+    smallScreenButton.width = 20;
+    smallScreenButton.height = 20;
+    smallScreenButton.x = app.screen.width - 10;
+    smallScreenButton.y = 10;
+    smallScreenButton.anchor.x = 1;
+    menuButton.width = 20;
+    menuButton.height = 20;
+    menuButton.x = app.screen.width - 50;
+    menuButton.y = 10;
+    menuButton.anchor.x = 1;
+
+    if (phoenixFlameCallback) {
+      phoenixFlameCallback(delta);
+    }
+
     aceOfShadowsButton.x = app.screen.width / 2;
     aceOfShadowsButton.y = app.screen.height / 2 - 200;
     magicWordsButton.x = app.screen.width / 2;

@@ -29,7 +29,7 @@ export default async function aceOfShadows(
 
   let offset = app.screen.height / 2;
   sprites.forEach((sprite, index) => {
-    sprite.x = app.screen.width / 2 - deckOffsetX;
+    sprite.x = container.width / 2 - deckOffsetX;
     sprite.y = offset + index;
     leftCards.addChild(sprite);
   });
@@ -37,12 +37,11 @@ export default async function aceOfShadows(
   const rightCards = new PIXI.Container();
   container.addChild(rightCards);
 
-  // TODO: make this 2 seconds
   function moveCard(
     card: PIXI.DisplayObject,
     targetX: number,
     targetY: number,
-    duration = 100
+    duration = 2000
   ) {
     return new Promise((resolve) => {
       let startTime = performance.now();
@@ -66,20 +65,19 @@ export default async function aceOfShadows(
     });
   }
 
-  async function transferCards() {
-    for (let index = leftCards.children.length - 1; index >= 0; index--) {
-      // for (const card of leftCards.children) {
-      const card = leftCards.children[index];
-      card.zIndex = leftCards.children.length - index;
-      await moveCard(
-        card,
-        app.screen.width / 2 + deckOffsetX,
-        app.screen.height / 2 + card.zIndex
-      );
-    }
+  let index = leftCards.children.length - 1;
+  async function transferCard() {
+    const card = leftCards.children[index];
+    card.zIndex = leftCards.children.length - index;
+    index -= 1;
+    await moveCard(
+      card,
+      card.x + deckOffsetX * 2,
+      app.screen.height / 2 + card.zIndex
+    );
   }
 
-  setTimeout(transferCards, 1000);
+  setInterval(transferCard, 1000);
 
   return container;
 }
